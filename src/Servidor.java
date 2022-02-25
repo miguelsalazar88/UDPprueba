@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.DatagramPacket;
 import java.net.DatagramSocket;
@@ -18,7 +20,10 @@ public class Servidor extends JFrame {
     private JTextArea textoServidor = new JTextArea(); //JTA
     private JScrollPane scrollPaneTexto = new JScrollPane(textoServidor); //Scroll Pane para el JTA
 
-    public Servidor(DatagramSocket datagramSocket) {
+    public Servidor(DatagramSocket datagramSocket) throws IOException {
+        //Log
+        mensajeLog("Inicializando Servidor\n");
+
         //UDP
         this.datagramSocket = datagramSocket; //Se asigna el DatagramSocket a la variable
 
@@ -27,8 +32,10 @@ public class Servidor extends JFrame {
         this.setVisible(true); // Visibilidad de la ventana
         this.setLayout(null); // Sin layout
         this.setDefaultCloseOperation(EXIT_ON_CLOSE); //Se termina el programa al cerrar la ventana
-        this.setTitle("Ventana Servidor"); //Título de la ventana
+        this.setTitle("Ventana Servidor...\n"); //Título de la ventana
         this.initComponents(); //Inicializador de los componentes de la ventana
+        mensajeLog("Servidor activo en 127.0.0.1\n");
+
     }
 
     //Se inicializan los componrntes de la Ventana
@@ -52,6 +59,7 @@ public class Servidor extends JFrame {
                 int puerto = datagramPacket.getPort(); //Recibe el numero del puerto del paquete
                 //Se asigna el contenido del mensaje a un String para mostrarlo en el JTA
                 String mensajeCliente = new String(datagramPacket.getData(), 0, datagramPacket.getLength());
+                mensajeLog("Servidor recibe mensaje de Cliente (" +datagramPacket.getAddress()+ "): " + mensajeCliente + "\n");
                 //Actualiza el JTA para mostrar el nuevo mensaje recibido
                 this.actualizarTextoServidor(mensajeCliente);
                 //Confirmación de recepción del mensaje
@@ -64,13 +72,18 @@ public class Servidor extends JFrame {
 
         }
     }
+    public void mensajeLog(String mensajeLog) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter("src/textoResultado.txt",true));
+        bw.write(mensajeLog);
+        bw.close();
+    }
 
     //Este metodo actualiza el JTA para mostrar el contenido de texto del mensaje
     public void actualizarTextoServidor(String s){
         this.textoServidor.setText(this.textoServidor.getText() + "\n" + "Mensaje del Cliente: " + s);
     }
     //Main
-    public static void main(String[] args) throws SocketException {
+    public static void main(String[] args) throws IOException {
         DatagramSocket datagramSocket = new DatagramSocket(1234);
         Servidor servidor = new Servidor(datagramSocket);
         servidor.recibirMensaje();

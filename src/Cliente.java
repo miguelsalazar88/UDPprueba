@@ -1,6 +1,8 @@
 import javax.swing.*;
 import java.awt.event.ActionEvent;
 import java.awt.event.ActionListener;
+import java.io.BufferedWriter;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.net.*;
 import java.util.Scanner;
@@ -23,7 +25,10 @@ public class Cliente extends JFrame implements ActionListener {
     private JTextField JTFCliente = new JTextField(); //JTF para escribir el mensaje que se va a enviar.
 
     //Constructor del Objeto CLiente
-    public Cliente(DatagramSocket datagramSocket, InetAddress inetAddress) {
+    public Cliente(DatagramSocket datagramSocket, InetAddress inetAddress) throws IOException {
+        //log
+        mensajeLog("Inicializando Cliente...\n");
+
 
         //UDP
         this.datagramSocket = datagramSocket; //Se asigna el socket a la variable
@@ -36,6 +41,9 @@ public class Cliente extends JFrame implements ActionListener {
         this.setDefaultCloseOperation(EXIT_ON_CLOSE); //Se termina el programa cuando se cierra la ventana
         this.setTitle("Ventana Cliente"); // Título de la ventana
         this.initComponents(); //Método que inicia los componentes del JFrame
+
+        //log
+        mensajeLog("Cliente activo en " + inetAddress.getHostAddress() + "\n");
 
     }
 
@@ -64,9 +72,11 @@ public class Cliente extends JFrame implements ActionListener {
                 //Se crea una instancia de DatagramPacket para poder encapsular el mensaje, y enviarlo por el puerto
                 // 1234
                 DatagramPacket datagramPacket = new DatagramPacket(buffer,buffer.length, inetAddress, 1234);
+                mensajeLog("Cliente (" + datagramPacket.getAddress().getHostAddress() + ") envia mensaje: " + mensaje + "\n");
 
                 //Se envía el mensaje a través del Socket
                 datagramSocket.send(datagramPacket);
+
 
 
                 // Se espera la confirmación de la recepción del mensaje por parte del servidor
@@ -90,8 +100,15 @@ public class Cliente extends JFrame implements ActionListener {
         this.textoCliente.setText(this.textoCliente.getText() + "\n" + "El servidor recibió el mensaje: " + s);
     }
 
+    // crea los logs en el archivo plano de texto.
+    public void mensajeLog(String mensajeLog) throws IOException {
+        BufferedWriter bw = new BufferedWriter(new FileWriter("src/textoResultado.txt",true));
+        bw.write(mensajeLog);
+        bw.close();
+    }
+
     //Main
-    public static void main(String[] args) throws SocketException, UnknownHostException {
+    public static void main(String[] args) throws IOException {
         DatagramSocket datagramSocket = new DatagramSocket();
         InetAddress inetAddress = InetAddress.getByName("localhost");
         Cliente cliente = new Cliente(datagramSocket, inetAddress);
